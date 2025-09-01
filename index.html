@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Journalism Training Workshop</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #0d1a26;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #ecf0f1;
+        }
+
+        #presentationContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #172a3a;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .cta-message {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ecf0f1;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .cta-message:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+            transform: translateX(-50%) scale(1.05);
+        }
+        
+        #loadingOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            z-index: 10;
+        }
+        
+        #loadingSpinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="presentationContainer">
+        <canvas id="presentationCanvas"></canvas>
+        <div id="ctaMessage" class="cta-message">
+            Click or press the right arrow key to continue
+        </div>
+        <div id="loadingOverlay">
+            <div id="loadingSpinner"></div>
+            <p style="margin-top: 20px;">Loading images...</p>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const container = document.getElementById('presentationContainer');
+            const canvas = document.getElementById('presentationCanvas');
+            const ctaMessage = document.getElementById('ctaMessage');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const ctx = canvas.getContext('2d');
+
+            let currentSlideIndex = 0;
+            const slides = [
+                // Title Slide
+                {
+                    type: 'title',
+                    title: "Sports Journalism Training Workshop",
+                    subtitle: "Kumintang Elementary School – Batangas City",
+                    doodles: [
+                        { text: "🏀", x: 0.2, y: 0.8 },
+                        { text: "⚽", x: 0.8, y: 0.7 },
+                        { text: "👟", x: 0.1, y: 0.3 },
+                        { text: "🏅", x: 0.9, y: 0.2 }
+                    ]
+                },
+                // What is Sports Journalism?
+                {
+                    type: 'list',
+                    title: "What is Sports Journalism?",
+                    titleFilipino: "Ano ang Sports Journalism?",
+                    content: [
+                        { text: "Writing and reporting about sports events, athletes, and fans.", icon: "📰" },
+                        { text: "Using words and images to capture excitement.", icon: "📸" }
+                    ],
+                    cta: "Goal: Make people feel like they were there! 🎯",
+                    ctaFilipino: "Layunin: Dalhin ang mambabasa sa mismong laro. 👉"
+                },
+                // Key Qualities
+                {
+                    type: 'listWithDescription',
+                    title: "Key Qualities of a Sports Journalist",
+                    content: [
+                        { text: "Observant / Mapagmasid", description: "Notice details others miss.", icon: "👀" },
+                        { text: "Fast / Mabilis", description: "Capture highlights right away.", icon: "⚡" },
+                        { text: "Clear & Exciting / Malinaw at Nakaka-excite", description: "Words should paint pictures.", icon: "✍️" },
+                        { text: "Knowledgeable / Marunong", description: "Know the sport, rules, and players.", icon: "📖" }
+                    ]
+                },
+                // Golden Moments in PH
+                {
+                    type: 'headlinesWithFacts',
+                    title: "Golden Moments in PH",
+                    headlineColor: '#f39c12', // Yellow/Gold
+                    headlines: [
+                        { english: "Yulo Doubles Gold in Paris!", filipino: "Dalawang Ginto si Yulo sa Paris!", icon: "🏆", fact: "Carlos Yulo is the first Filipino gymnast with 2 Olympic gold medals in one Games." },
+                        { english: "Alas Pilipinas Brings Home Bronze!", filipino: "Bronse para sa Alas Pilipinas!", icon: "🏐", fact: "This was the first Volleyball World Championship hosted in Southeast Asia." },
+                        { english: "Philippines Stuns Thailand in Football After 52 Years!", filipino: "Philippines, Panalo vs. Thailand Matapos ang 52 Taon!", icon: "⚽", fact: "The Philippines waited 52 years to beat Thailand in football." }
+                    ]
+                },
+                // NEW: Philippine Sports Images
+                {
+                    type: 'multipleImages',
+                    title: 'Golden Moments in PH: In Photos',
+                    images: [
+                        { src: 'https://1cms-img.imgix.net/04AUGYULO2.jpg?auto=compress', caption: 'Carlos Yulo at the Paris 2024 Olympics, where he won two gold medals.' },
+                        { src: 'https://cbholganza.com/wp-content/uploads/2024/06/avc8facebook.jpeg', caption: 'Alas Pilipinas celebrating their bronze medal win in the Volleyball World Cup.' },
+                        { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSG2oH2hrdgyZcAxL2Ix6q4waksPhZ5yDo8kQ&s', caption: 'The Philippine men\'s football team celebrating their historic win over Thailand.' }
+                    ]
+                },
+                // Big Global Sports Events
+                {
+                    type: 'headlinesWithFacts',
+                    title: "Big Global Sports Events",
+                    headlineColor: '#3498db', // Blue
+                    headlines: [
+                        { english: "Volleyball World Cup in Manila!", filipino: "World Cup ng Volleyball sa Pilipinas!", icon: "🌍", fact: "This is the first Volleyball World Championship in Southeast Asia." },
+                        { english: "Ryder Cup’s Rivalry Roars to Life!", filipino: "Tunggalian ng Ryder Cup, Nag-aalab!", icon: "⛳", fact: "The Ryder Cup is a major golf tournament between teams from Europe and the United States." },
+                        { english: "200 Nations Compete in Tokyo!", filipino: "200 Bansa, Maglalaban sa Tokyo!", icon: "🏃", fact: "The World Athletics Championships feature competitors from over 200 countries." }
+                    ]
+                },
+                // NEW: Global Sports Images
+                {
+                    type: 'multipleImages',
+                    title: 'Global Sports Events: In Photos',
+                    images: [
+                        { src: 'https://www.fivb.com/wp-content/uploads/2024/06/101477-scaled.jpeg', caption: 'A match at the Volleyball World Cup held in Manila.' },
+                        { src: 'https://imperial1916.com/cdn/shop/collections/2025-Ryder-cup-full-color-logo.png?v=1729009243', caption: 'The Ryder Cup, a premier golf tournament between teams from Europe and the US.' },
+                        { src: 'https://athletics.org.nz/wp-content/uploads/2024/08/athletics-nz-zoe-hobbs-world-athletics-championships-1024x740.jpg', caption: 'Athletes competing at the World Athletics Championships in Tokyo.' }
+                    ]
+                },
+                // Why It Matters Box
+                {
+                    type: 'whyItMatters',
+                    title: "Why It Matters: What Journalists Notice",
+                    points: [
+                        "**Technique Highlights:** The incredible power of a spike or the perfect landing of a gymnast.",
+                        "**National Pride:** How a victory makes the whole country feel proud.",
+                        "**Unexpected Upsets:** When the underdog team beats a champion, making for an unforgettable story."
+                    ],
+                    boxColor: '#2ecc71', // Green
+                },
+                // Vocabulary Booster
+                {
+                    type: 'table',
+                    title: "Vocabulary Booster",
+                    table: [
+                        { english: "Athlete", filipino: "Manlalaro", example: "The athlete trained daily." },
+                        { english: "Champion", filipino: "Kampeon", example: "Siya ang kampeon ng torneo." },
+                        { english: "Crowd", filipino: "Tao / Manonood", example: "The crowd cheered loudly." },
+                        { english: "Victory", filipino: "Tagumpay", example: "Ang tagumpay ay pinaghirapan." },
+                        { english: "Rivalry", filipino: "Tunggalian", example: "May matinding tunggalian sa laban." }
+                    ]
+                },
+                // Writing Drill #1
+                {
+                    type: 'drill',
+                    title: "Writing Drill #1: Who, What, When, Where, Why",
+                    example: {
+                        title: "Example (Carlos Yulo):",
+                        points: [
+                            { key: "Who", value: "Carlos Yulo" },
+                            { key: "What", value: "Won two gold medals" },
+                            { key: "When", value: "Paris Olympics 2024" },
+                            { key: "Where", value: "Paris, France" },
+                            { key: "Why", value: "Best gymnast in floor & vault" }
+                        ]
+                    },
+                    task: "Students fill in details for Alas Pilipinas Bronze Medal Win",
+                },
+                // Writing Drill #2
+                {
+                    type: 'notesToNews',
+                    title: "Writing Drill #2: From Notes to News",
+                    notes: [
+                        "Philippine Football Team",
+                        "Beat Thailand after 52 years",
+                        "Score: 2–1",
+                        "AFF Semifinals"
+                    ],
+                    storyLead: "The Philippine Men’s Football Team shocked Thailand with a 2–1 victory, marking their first win against the powerhouse in over five decades.",
+                },
+                // Wrap-Up Challenge
+                {
+                    type: 'challenge',
+                    title: "Your Turn—Which sports moment would you report and why?",
+                    takeaways: [
+                        "Write fast, clear, and exciting.",
+                        "Always check facts (scores, names, places).",
+                        "Use strong headlines.",
+                        "Practice makes perfect—journalism is a sport too!"
+                    ],
+                    endMessage: "Your Story, Your Game, Your Voice!",
+                }
+            ];
+            
+            let loadedImages = {};
+            let imagesToLoad = [];
+
+            // Helper function to preload images
+            function preloadImages(slides) {
+                return new Promise((resolve, reject) => {
+                    slides.forEach(slide => {
+                        if (slide.type === 'multipleImages') {
+                            slide.images.forEach(image => {
+                                if (!loadedImages[image.src]) {
+                                    imagesToLoad.push(image.src);
+                                }
+                            });
+                        }
+                    });
+
+                    if (imagesToLoad.length === 0) {
+                        resolve();
+                        return;
+                    }
+
+                    let loadedCount = 0;
+                    imagesToLoad.forEach(src => {
+                        const img = new Image();
+                        img.onload = () => {
+                            loadedImages[src] = img;
+                            loadedCount++;
+                            if (loadedCount === imagesToLoad.length) {
+                                resolve();
+                            }
+                        };
+                        img.onerror = () => {
+                            console.error(`Failed to load image: ${src}`);
+                            loadedCount++;
+                            if (loadedCount === imagesToLoad.length) {
+                                resolve();
+                            }
+                        };
+                        img.src = src;
+                    });
+                });
+            }
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                drawCurrentSlide();
+            }
+
+            function drawCurrentSlide() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const slide = slides[currentSlideIndex];
+                drawSlide(slide);
+            }
+
+            function drawSlide(slide) {
+                const w = canvas.width;
+                const h = canvas.height;
+                const margin = w * 0.05;
+
+                // Set default text styles
+                ctx.font = `600 ${w * 0.025}px 'Poppins'`;
+                ctx.fillStyle = '#ecf0f1';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Helper function to wrap text and return the final Y position
+                function wrapText(context, text, x, y, maxWidth, lineHeight, align = 'center') {
+                    const words = text.split(' ');
+                    let line = '';
+                    let lines = [];
+                    for (let n = 0; n < words.length; n++) {
+                        const testLine = line + words[n] + ' ';
+                        const metrics = context.measureText(testLine);
+                        const testWidth = metrics.width;
+                        if (testWidth > maxWidth && n > 0) {
+                            lines.push(line);
+                            line = words[n] + ' ';
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    lines.push(line);
+                    
+                    const startY = y - (lines.length - 1) * lineHeight / 2; // Center multi-line text
+                    
+                    for (let i = 0; i < lines.length; i++) {
+                        context.textAlign = align;
+                        context.fillText(lines[i].trim(), x, startY + i * lineHeight);
+                    }
+                    return startY + lines.length * lineHeight;
+                }
+                
+                // Draw a headline and its Filipino counterpart
+                function drawBilingualHeadline(headline, x, y, w, primaryColor, secondaryColor) {
+                    ctx.font = `800 ${w * 0.03}px 'Poppins'`;
+                    ctx.fillStyle = primaryColor;
+                    ctx.textAlign = 'left';
+                    const iconWidth = ctx.measureText(headline.icon).width;
+                    ctx.fillText(headline.icon, x, y);
+                    
+                    let englishY = y - w * 0.015;
+                    ctx.font = `600 ${w * 0.025}px 'Poppins'`;
+                    ctx.fillStyle = '#ecf0f1';
+                    englishY = wrapText(ctx, headline.english, x + iconWidth + 10, englishY, w * 0.8 - iconWidth, w * 0.03, 'left');
+                    
+                    let filipinoY = englishY + w * 0.005;
+                    ctx.font = `400 ${w * 0.02}px 'Poppins'`;
+                    ctx.fillStyle = secondaryColor;
+                    filipinoY = wrapText(ctx, headline.filipino, x + iconWidth + 10, filipinoY, w * 0.8 - iconWidth, w * 0.025, 'left');
+
+                    if (headline.fact) {
+                        let factY = filipinoY + w * 0.005;
+                        ctx.fillStyle = '#7f8c8d';
+                        ctx.font = `italic 400 ${w * 0.018}px 'Poppins'`;
+                        factY = wrapText(ctx, `Fun Fact: ${headline.fact}`, x + iconWidth + 10, factY, w * 0.8 - iconWidth, w * 0.02, 'left');
+                        return factY + w * 0.03;
+                    }
+
+                    return filipinoY + w * 0.03;
+                }
+
+                switch (slide.type) {
+                    case 'title':
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.font = `800 ${w * 0.05}px 'Poppins'`;
+                        wrapText(ctx, slide.title, w / 2, h * 0.4, w * 0.8, w * 0.06);
+
+                        ctx.fillStyle = '#bdc3c7';
+                        ctx.font = `600 ${w * 0.02}px 'Poppins'`;
+                        ctx.fillText(slide.subtitle, w / 2, h * 0.6);
+                        
+                        ctx.font = `800 ${w * 0.06}px 'Poppins'`;
+                        slide.doodles.forEach(doodle => {
+                            ctx.fillText(doodle.text, w * doodle.x, h * doodle.y);
+                        });
+                        break;
+                    case 'list':
+                        ctx.textAlign = 'center';
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.font = `800 ${w * 0.04}px 'Poppins'`;
+                        wrapText(ctx, slide.title, w / 2, h * 0.1, w * 0.8, w * 0.05);
+
+                        ctx.fillStyle = '#bdc3c7';
+                        ctx.font = `600 ${w * 0.02}px 'Poppins'`;
+                        ctx.fillText(slide.titleFilipino, w / 2, h * 0.1 + w * 0.06);
+
+                        let yPos = h * 0.3;
+                        ctx.font = `400 ${w * 0.025}px 'Poppins'`;
+                        ctx.fillStyle = '#ecf0f1';
+                        slide.content.forEach(item => {
+                            ctx.fillText(`${item.icon} ${item.text}`, w / 2, yPos);
+                            yPos += w * 0.05;
+                        });
+                        
+                        ctx.font = `600 ${w * 0.03}px 'Poppins'`;
+                        ctx.fillStyle = '#f1c40f';
+                        wrapText(ctx, slide.cta, w / 2, h - margin, w * 0.8, w * 0.04);
+                        
+                        ctx.font = `400 ${w * 0.025}px 'Poppins'`;
+                        ctx.fillStyle = '#bdc3c7';
+                        wrapText(ctx, slide.ctaFilipino, w / 2, h - margin + w * 0.03, w * 0.8, w * 0.03);
+                        break;
+                    case 'listWithDescription':
+                        ctx.textAlign = 'center';
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.font = `800 ${w * 0.04}px 'Poppins'`;
+                        ctx.fillText(slide.title, w / 2, h * 0.1);
+
+                        let listY = h * 0.25;
+                        slide.content.forEach(item => {
+                            ctx.font = `600 ${w * 0.03}px 'Poppins'`;
+                            ctx.fillStyle = '#f1c40f';
+                            ctx.fillText(`${item.icon} ${item.text}`, w / 2, listY);
+
+                            ctx.font = `400 ${w * 0.02}px 'Poppins'`;
+                            ctx.fillStyle = '#bdc3c7';
+                            ctx.fillText(item.description, w / 2, listY + w * 0.025);
+                            listY += w * 0.08;
+                        });
+                        break;
+                    case 'headlinesWithFacts':
+                        ctx.textAlign = 'center';
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.font = `800 ${w * 0.04}px 'Poppins'`;
+                        ctx.fillText(slide.title, w / 2, h * 0.1);
+                        
+                        let y = h * 0.2;
+                        slide.headlines.forEach(headline => {
+                            y = drawBilingualHeadline(headline, margin, y, w, '#f39c12', '#bdc3c7');
+                        });
+                        break;
+                    case 'multipleImages':
+                        ctx.textAlign = 'center';
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.font = `800 ${w * 0.04}px 'Poppins'`;
+                        ctx.fillText(slide.title, w / 2, h * 0.1);
+                        
+                        const imageWidth = w * 0.25;
+                        const imageHeight = h * 0.35;
+                        const spacing = w * 0.05;
+                        const startX = (w - (imageWidth * slide.images.length + spacing * (slide.images.length - 1))) / 2;
+                        
+                        slide.images.forEach((image, index) => {
+                            const imageX = startX + index * (imageWidth + spacing);
+                            const imageY = h * 0.25;
+                            const img = loadedImages[image.src];
+
+                            if (img && img.complete) {
+                                ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
+                            } else {
+                                // Draw a fallback placeholder if image is not loaded
+                                ctx.fillStyle = '#2c3e50';
+                                ctx.roundRect(imageX, imageY, imageWidth, imageHeight, 10);
+                                ctx.fill();
+
+                                ctx.fillStyle = '#ecf0f1';
+                                ctx.font = `italic 400 ${w * 0.015}px 'Poppins'`;
+                                wrapText(ctx, "Loading...", imageX + imageWidth / 2, imageY + imageHeight / 2, imageWidth * 0.8, w * 0.02);
+                            }
+
+                            // Draw caption
+                            ctx.font = `400 ${w * 0.018}px 'Poppins'`;
+                            ctx.fillStyle = '#bdc3c7';
+                            wrapText(ctx, image.caption, imageX + imageWidth / 2, imageY + imageHeight + w * 0.03, imageWidth * 1.2, w * 0.02);
+                        });
+                        break;
+                    case 'whyItMatters':
+                        ctx.textAlign = 'center';
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.font = `800 ${w * 0.04}px 'Poppins'`;
+                        ctx.fillText(slide.title, w / 2, h * 0.1);
+
+                        const boxWidth = w * 0.8;
+                        const boxHeight = h * 0.7;
+                        const boxX = (w - boxWidth) / 2;
+                        const boxY = (h - boxHeight) / 2;
+                        
+                        ctx.fillStyle = slide.boxColor;
+                        ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 15);
+                        ctx.fill();
+
+                        let textY = boxY + h * 0.15;
+                        ctx.textAlign = 'left';
+                        ctx.fillStyle = '#fff';
+                        
+                        slide.points.forEach(point => {
+                            const boldPart = point.substring(0, point.indexOf(':') + 1);
+                            const normalPart = point.substring(point.indexOf(':') + 1);
+                            
+                            ctx.font = `bold ${w * 0.025}px 'Poppins'`;
+                            const boldMetrics = ctx.measureText(boldPart);
+                            ctx.fillText(boldPart, boxX + margin, textY);
+                            
+                            ctx.font = `400 ${w * 0.02}px 'Poppins'`;
+                            wrapText(ctx, normalPart.trim(), boxX + margin + boldMetrics.width + 5, textY, boxWidth - margin * 2 - boldMetrics.width - 5, w * 0.025, 'left');
+                            textY += h * 0.2;
+                        });
+                        break;
+                    case 'table':
+                        ctx.textAlign = 'center';
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.font = `800 ${w * 0.04}px 'Poppins'`;
+                        ctx.fillText(slide.title, w / 2, h * 0.1);
+
+                        const rowHeight = w * 0.045;
+                        const colWidths = [w * 0.25, w * 0.25, w * 0.35];
+                        let tableY = h * 0.2;
+                        
+                        ctx.fillStyle = '#2c3e50';
+                        ctx.fillRect(margin, tableY, w - margin * 2, rowHeight);
+                        
+                        ctx.fillStyle = '#ecf0f1';
+                        ctx.font = `600 ${w * 0.02}px 'Poppins'`;
+                        ctx.textAlign = 'left';
+                        ctx.fillText("English Word", margin + 10, tableY + rowHeight / 2);
+                        ctx.fillText("Filipino Word", margin + colWidths[0] + 10, tableY + rowHeight / 2);
+                        ctx.fillText("Example Sentence", margin + colWidths[0] + colWidths[1] + 10, tableY + rowHeight / 2);
+                        
+                        tableY += rowHeight;
+                        slide.table.forEach(row => {
+                            ctx.fillStyle = '#34495e';
+                            ctx.fillRect(margin, tableY, w - margin * 2, rowHeight);
+                            ctx.fillStyle = '#ecf0f1';
+                            ctx.font = `400 ${w * 0.02}px 'Poppins'`;
+                            ctx.fillText(row.english, margin + 10, tableY + rowHeight / 2);
+                            ctx.fillText(row.filipino, margin + colWidths[0] + 10, tableY + rowHeight / 2);
+                            ctx.fillText(row.example, margin + colWidths[0] + colWidths[1] + 10, tableY + rowHeight / 2);
+                            tableY += rowHeight;
+                        });
+                        break;
+                    case 'drill':
+                        ctx.textAlign = 'center';
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.font = `800 ${w * 0.04}px 'Poppins'`;
+                        wrapText(ctx, slide.title, w / 2, h * 0.1, w * 0.8, w * 0.05);
+
+                        let drillY = h * 0.25;
+                        ctx.font = `600 ${w * 0.025}px 'Poppins'`;
+                        ctx.fillStyle = '#3498db';
+                        ctx.fillText(slide.example.title, w / 2, drillY);
+                        
+                        drillY += w * 0.04;
+                        ctx.font = `400 ${w * 0.025}px 'Poppins'`;
+                        ctx.fillStyle = '#bdc3c7';
+                        slide.example.points.forEach(point => {
+                            drillY = wrapText(ctx, `${point.key}: ${point.value}`, w / 2, drillY, w * 0.8, w * 0.035);
+                            drillY += w * 0.01;
+                        });
+                        
+                        ctx.fillStyle = '#2ecc71';
+                        ctx.font = `600 ${w * 0.025}px 'Poppins'`;
+                        wrapText(ctx, `👉 Task: ${slide.task}`, w / 2, h - margin * 1.5, w * 0.8, w * 0.035);
+                        break;
+                    case 'notesToNews':
+                        ctx.textAlign = 'left';
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.font = `800 ${w * 0.04}px 'Poppins'`;
+                        ctx.fillText(slide.title, margin, h * 0.1);
+                        
+                        let notesY = h * 0.2;
+                        ctx.font = `600 ${w * 0.025}px 'Poppins'`;
+                        ctx.fillStyle = '#f39c12';
+                        ctx.fillText("📝 Notes:", margin, notesY);
+                        
+                        notesY += w * 0.035;
+                        ctx.font = `400 ${w * 0.025}px 'Poppins'`;
+                        ctx.fillStyle = '#bdc3c7';
+                        slide.notes.forEach(note => {
+                            ctx.fillText(note, margin, notesY);
+                            notesY += w * 0.035;
+                        });
+
+                        notesY += w * 0.035;
+                        ctx.font = `600 ${w * 0.025}px 'Poppins'`;
+                        ctx.fillStyle = '#3498db';
+                        ctx.fillText("📰 Sample Story Lead:", margin, notesY);
+                        
+                        notesY += w * 0.035;
+                        ctx.font = `italic 400 ${w * 0.025}px 'Poppins'`;
+                        ctx.fillStyle = '#ecf0f1';
+                        wrapText(ctx, `“${slide.storyLead}”`, margin, notesY, w - margin * 2, w * 0.03, 'left');
+                        break;
+                    case 'challenge':
+                        ctx.textAlign = 'center';
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.font = `800 ${w * 0.04}px 'Poppins'`;
+                        wrapText(ctx, slide.title, w / 2, h * 0.2, w * 0.8, w * 0.05);
+
+                        let takeawayY = h * 0.45;
+                        ctx.textAlign = 'center';
+                        ctx.font = `600 ${w * 0.035}px 'Poppins'`;
+                        ctx.fillStyle = '#2ecc71';
+                        ctx.fillText("Key Takeaways", w / 2, takeawayY);
+
+                        takeawayY += w * 0.05;
+                        ctx.font = `400 ${w * 0.025}px 'Poppins'`;
+                        ctx.fillStyle = '#bdc3c7';
+                        slide.takeaways.forEach(item => {
+                            ctx.fillText(item, w / 2, takeawayY);
+                            takeawayY += w * 0.04;
+                        });
+
+                        ctx.textAlign = 'center';
+                        ctx.font = `600 ${w * 0.03}px 'Poppins'`;
+                        ctx.fillStyle = '#f1c40f';
+                        ctx.fillText(slide.endMessage, w / 2, h - margin);
+                        break;
+                }
+                
+                if (currentSlideIndex === slides.length - 1) {
+                    ctaMessage.style.display = 'none';
+                } else {
+                    ctaMessage.style.display = 'block';
+                }
+            }
+            
+            // Function to draw rounded rectangles
+            CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
+                if (width < 2 * radius) radius = width / 2;
+                if (height < 2 * radius) radius = height / 2;
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.arcTo(x + width, y, x + width, y + height, radius);
+                this.arcTo(x + width, y + height, x, y + height, radius);
+                this.arcTo(x, y + height, x, y, radius);
+                this.arcTo(x, y, x + width, y, radius);
+                this.closePath();
+                return this;
+            }
+
+            function nextSlide() {
+                if (currentSlideIndex < slides.length - 1) {
+                    currentSlideIndex++;
+                    drawCurrentSlide();
+                }
+            }
+
+            canvas.addEventListener('click', nextSlide);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    nextSlide();
+                } else if (e.key === 'ArrowLeft') {
+                    if (currentSlideIndex > 0) {
+                        currentSlideIndex--;
+                        drawCurrentSlide();
+                    }
+                }
+            });
+
+            // Start preloading and then initialize presentation
+            preloadImages(slides).then(() => {
+                loadingOverlay.style.display = 'none';
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+            });
+        };
+    </script>
+</body>
+</html>
